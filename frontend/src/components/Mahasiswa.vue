@@ -14,7 +14,7 @@
                   <div class="offcanvas-body">
                       <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
                       <li class="nav-item">
-                          <router-link class="nav-link" to="/">Dashboard</router-link>
+                          <router-link class="nav-link" to="/dashboard">Dashboard</router-link>
                       </li>
                       <li class="nav-item">
                           <router-link class="nav-link active" to="/datamahasiswa">Data Mahasiswa</router-link>
@@ -79,7 +79,7 @@
   </template>
   
   <script>
-  import EditMahasiswa from './EditMahasiswa.vue';
+  import EditMahasiswa from '../EditMahasiswa.vue';
   import axios from 'redaxios';
   
   export default {
