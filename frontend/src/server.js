@@ -10,7 +10,7 @@ app.use(bodyParser.json());
 const mahasiswaList = []; // Menyimpan daftar mahasiswa
 
 // Endpoint untuk menambahkan mahasiswa
-app.post('/api/mahasiswa', (req, res) => {
+app.post('http://127.0.0.1:8000/api/mahasiswa', (req, res) => {
   const newMahasiswa = req.body;
 
   // Validasi NIM

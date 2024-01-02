@@ -79,7 +79,7 @@
   </template>
   
   <script>
-  import EditMahasiswa from '../EditMahasiswa.vue';
+  import EditMahasiswa from '../components/EditMahasiswa.vue';
   import axios from 'redaxios';
   
   export default {
