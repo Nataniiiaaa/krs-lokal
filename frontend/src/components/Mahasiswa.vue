@@ -86,7 +86,7 @@
     name: 'Mahasiswa',
     data() {
       return {
-        allMahasiswa: {},
+        allMahasiswa: [],
         agamaList: [],
         Mahasiswa: {
           'id': '',
@@ -99,31 +99,30 @@
       };
     },
     created() {
-      console.log('Created !');
       this.loadAllMahasiswa();
       this.loadAgamaList();
-    },
-    mounted() {
-      console.log('Mounted !');
     },
     methods: {
       loadAllMahasiswa() {
         var url = 'http://127.0.0.1:8000/api/mahasiswa';
         axios.get(url).then(({ data }) => {
-          console.log(data);
           this.allMahasiswa = data;
+          this.sortMahasiswa(); // Panggil fungsi sort setelah memuat data
+        });
+      },
+      sortMahasiswa() {
+        // Fungsi untuk menyortir array mahasiswa berdasarkan NIM
+        this.allMahasiswa.sort((a, b) => {
+          return a.nim.localeCompare(b.nim, undefined, { numeric: true, sensitivity: 'base' });
         });
       },
       loadAgamaList() {
-        // Permintaan untuk mendapatkan daftar agama
         var agamaUrl = 'http://127.0.0.1:8000/api/agama';
         axios.get(agamaUrl).then(({ data }) => {
-          console.log(data);
           this.agamaList = data;
         });
       },
       getAgamaName(agama_id) {
-        // Fungsi untuk mendapatkan nama agama berdasarkan agama_id
         const agama = this.agamaList.find((agama) => agama.id === agama_id);
         return agama ? agama.agama : 'Tidak Diketahui';
       },
@@ -137,19 +136,17 @@
         });
       },
       editMahasiswa(Mahasiswa) {
-      // Menggunakan Vue Router untuk perpindahan halaman
-          this.$router.push({ name: 'EditMahasiswa', params: { id: Mahasiswa.id } });
+        this.$router.push({ name: 'EditMahasiswa', params: { id: Mahasiswa.id } });
       },
       logoutUser() {
-        localStorage.removeItem('user'); 
-         window.alert('Anda telah logout'); 
-        this.$router.push('/login'); 
+        localStorage.removeItem('user');
+        window.alert('Anda telah logout');
+        this.$router.push('/login');
       },
     },
-
     components: {
       EditMahasiswa
     }
-  }
+  };
   </script>
   
