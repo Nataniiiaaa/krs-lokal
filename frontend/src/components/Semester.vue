@@ -48,6 +48,7 @@
       <div class="d-flex justify-content-between my-3">
         <h5>Semester : {{ krsDetails.semester }}</h5>
       </div>
+      <router-link class="btn btn-danger" to="/krs">Kembali</router-link>
       <div class="table-responsive shadow p-3 mb-5 bg-white rounded">
         <table class="table table-bordered table-striped">
           <thead class="thead-dark">
@@ -58,11 +59,11 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(student, index) in mahasiswaDetails" :key="index">
-              <td>{{ student.nim }}</td>
-              <td>{{ student.nama }}</td>
+            <tr v-for="(Mahasiswa, index) in mahasiswaDetails" :key="index">
+              <td>{{ Mahasiswa.nim }}</td>
+              <td>{{ Mahasiswa.nama }}</td>
               <td>
-                <router-link :to="{ name: 'MatkulMhs', params: { id: student.id } }" class="btn btn-info">Detail Matkuliah Mahasiswa</router-link>
+                <router-link :to="{ name: 'MatkulMhs', params: { id: Mahasiswa.id } }" class="btn btn-info">Detail Matkuliah Mahasiswa</router-link>
               </td>
             </tr>
           </tbody>
@@ -73,7 +74,7 @@
   
   <script>
   import axios from 'redaxios';
-  
+
   export default {
     name: 'DetKrs',
     data() {
@@ -89,7 +90,7 @@
         mahasiswaDetails: [],
       };
     },
-  
+
     created() {
       this.fetchKrsDetails();
     },
@@ -127,7 +128,7 @@
                 console.log('Not');
               }
             });
-  
+
             // Fetch additional details for each student (nim, nama, etc.)
             this.fetchStudentDetails();
           })
@@ -138,23 +139,38 @@
       fetchStudentDetails() {
         // Assuming you have the array of mahasiswa_id values in this.MhsID
         var mahasiswaIds = this.MhsID;
+        // Initialize an object to store unique NIM values for validation
+        var uniqueNIMs = {};
+
         // Iterate through each mahasiswa_id
         mahasiswaIds.forEach((mahasiswaId) => {
           // Assuming you have an API endpoint to fetch mahasiswa details
           const mahasiswaUrl = `http://127.0.0.1:8000/api/mahasiswa/${mahasiswaId}`;
-  
+
           // Make an API request to get mahasiswa details
           axios
             .get(mahasiswaUrl)
             .then((response) => {
               const mahasiswaData = response.data;
-  
-              // Push an object with nim and nama to the mahasiswaDetails array
-              this.mahasiswaDetails.push({
-                id: mahasiswaId,
-                nim: mahasiswaData.nim,
-                nama: mahasiswaData.nama,
-              });
+
+              // Check if NIM is unique
+              if (!uniqueNIMs[mahasiswaData.nim]) {
+                // Push an object with nim and nama to the mahasiswaDetails array
+                this.mahasiswaDetails.push({
+                  id: mahasiswaId,
+                  nim: mahasiswaData.nim,
+                  nama: mahasiswaData.nama,
+                });
+
+                // Add NIM to uniqueNIMs object for validation
+                uniqueNIMs[mahasiswaData.nim] = true;
+              } else {
+                // Handle the case when NIM is not unique
+                console.error('Duplicate NIM found:', mahasiswaData.nim);
+              }
+
+              // Sort mahasiswaDetails array based on NIM (ascending)
+              this.mahasiswaDetails.sort((a, b) => a.nim.localeCompare(b.nim, undefined, { numeric: true, sensitivity: 'base' }));
             })
             .catch((error) => {
               console.error('Error fetching Mahasiswa details:', error);
@@ -163,5 +179,6 @@
       },
     },
   };
-  </script>
+</script>
+
   
