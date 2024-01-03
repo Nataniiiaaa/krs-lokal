@@ -20,7 +20,7 @@
                 <router-link class="nav-link" to="/datamahasiswa">Data Mahasiswa</router-link>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"> Data Matakuliah </a>
+                <router-link class="nav-link" to="/matakuliah">Data Matakuliah</router-link>
               </li>
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"> Data KRS </a>
@@ -41,12 +41,6 @@
   <div class="container">
     <div class="d-flex justify-content-between my-3">
       <h2>Detail Matakuliah Mahasiswa</h2>
-    </div>
-    <div class="d-flex justify-content-between my-3">
-      <h5>Tahun : {{ krsDetails.tahun }}</h5>
-    </div>
-    <div class="d-flex justify-content-between my-3">
-      <h5>Semester : {{ krsDetails.semester }}</h5>
     </div>
     <div class="d-flex justify-content-between my-3">
       <h5>NIM : {{ MhsDetail.nim }}</h5>
@@ -73,7 +67,6 @@
           </tr>
         </tbody>
       </table>
-      <router-link :to="{ name: 'Semester', params: { id: KrsId } }" class="btn btn-danger">Back</router-link>
     </div>
   </div>
 </template>
@@ -86,42 +79,24 @@ export default {
   data() {
     return {
       MahasiswaId: this.$route.params.id,
-      KrsId: this.$route.params.krsid,
       MhsDetail: {
         nim: '',
         nama: '',
-      },
-      krsDetails: {
-        tahun: '',
         semester: '',
+        tahunAjaran: '',
       },
       DetilKrsList: [],
       MatkulID: [],
       DetilID: [],
       MatakuliahDetails: [],
       Nilai: [],
-      KRS: [],
     };
   },
 
   created() {
     this.fetchMhsDetails();
-    this.fetchKrsDetails();
   },
   methods: {
-    fetchKrsDetails() {
-      const krsUrl = `http://127.0.0.1:8000/api/krs/${this.KrsId}`;
-      axios
-        .get(krsUrl)
-        .then(({ data }) => {
-          this.krsDetails.tahun = data.tahun;
-          this.krsDetails.semester = data.semester;
-          // Fetch DetilKrsList and Mahasiswa details
-        })
-        .catch((error) => {
-          console.error('Error fetching KRS details:', error);
-        });
-    },
     fetchMhsDetails() {
       const url = `http://127.0.0.1:8000/api/mahasiswa/${this.MahasiswaId}`;
       axios
@@ -129,6 +104,8 @@ export default {
         .then(({ data }) => {
           this.MhsDetail.nim = data.nim;
           this.MhsDetail.nama = data.nama;
+          this.MhsDetail.semester = data.semester;
+          this.MhsDetail.tahunAjaran = data.tahun_ajaran;
 
           this.fetchMatakuliahForStudent();
         })
@@ -136,7 +113,6 @@ export default {
           console.error('Error fetching Mhs details:', error);
         });
     },
-    // In the fetchMatakuliahForStudent method
     fetchMatakuliahForStudent() {
       const detilKrsUrl = `http://127.0.0.1:8000/api/detilkrs`;
       axios
@@ -150,16 +126,20 @@ export default {
             console.log(e);
             var matches = e.mahasiswa_id == this.MahasiswaId;
             if (matches) {
-              this.MatkulID[index] = element.matakuliah_id;
-              this.DetilID[index] = element.id;
-              index++;
-              console.log('Get');
+              // Pengecekan apakah matkulId sudah ada
+              if (!this.MatkulID.includes(element.matakuliah_id)) {
+                this.MatkulID[index] = element.matakuliah_id;
+                this.DetilID[index] = element.id;
+                index++;
+                console.log('Get');
+              } else {
+                console.log('Duplicate matkulId found:', element.matakuliah_id);
+              }
             } else {
               console.log('Not');
             }
           });
 
-          // Fetch additional details for each student (nim, nama, etc.)
           this.fetchMatakuliahDetails();
         })
         .catch((error) => {
@@ -170,7 +150,6 @@ export default {
       var matkulIds = this.MatkulID;
       var detilIds = this.DetilID;
 
-      // Use Promise.all to wait for all requests to complete
       Promise.all(
         matkulIds.map((matkulId, index) => {
           const matakuliahUrl = `http://127.0.0.1:8000/api/matakuliah/${matkulId}`;
@@ -178,7 +157,6 @@ export default {
             .get(matakuliahUrl)
             .then((response) => {
               const matakuliahData = response.data;
-              // Return an object with needed data
               return {
                 id: matkulId,
                 kode: matakuliahData.kode,
@@ -191,14 +169,12 @@ export default {
             });
         })
       ).then((matakuliahDetailsArray) => {
-        // Iterate through detilIds and match them with matakuliahDetailsArray
         detilIds.forEach((detilId, index) => {
           const detilkrsUrl = `http://127.0.0.1:8000/api/detilkrs/${detilId}`;
           axios
             .get(detilkrsUrl)
             .then((response) => {
               const detilkrs = response.data;
-              // Find the matching matakuliahDetails
               const matchingMatakuliah = matakuliahDetailsArray.find((item) => item.id === matkulIds[index]);
               if (matchingMatakuliah) {
                 let predikat;
@@ -211,7 +187,7 @@ export default {
                 else if (n >= 65 && n < 75) predikat = 'B';
                 else if (n >= 75 && n < 80) predikat = 'B+';
                 else if (n >= 80 && n <= 100) predikat = 'A';
-                // Push to MatakuliahDetails
+
                 this.MatakuliahDetails.push({
                   id: matchingMatakuliah.id,
                   kode: matchingMatakuliah.kode,
@@ -225,7 +201,15 @@ export default {
               console.error('Error fetching DetilKrsList:', error);
             });
         });
+
+// Sorting MatakuliahDetails berdasarkan kode matakuliah
+this.MatakuliahDetails.sort((a, b) => a.kode.localeCompare(b.kode));
+
       });
+    },
+    logoutUser() {
+      // Implement your logout logic here
+      console.log('Logout clicked');
     },
   },
 };

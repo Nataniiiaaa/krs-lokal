@@ -20,7 +20,7 @@
                 <router-link class="nav-link" to="/datamahasiswa">Data Mahasiswa</router-link>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"> Data Matakuliah </a>
+                <router-link class="nav-link" to="/matakuliah">Data Matakuliah</router-link>
               </li>
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"> Data KRS </a>
@@ -58,16 +58,15 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(student, index) in mahasiswaDetails" :key="index">
-            <td>{{ student.nim }}</td>
-            <td>{{ student.nama }}</td>
+          <tr v-for="(Mahasiswa, index) in mahasiswaDetails" :key="index">
+            <td>{{ Mahasiswa.nim }}</td>
+            <td>{{ Mahasiswa.nama }}</td>
             <td>
-              <router-link :to="{ name: 'MatkulMhs', params: { id: student.id, krsid: this.KrsId } }" class="btn btn-info">Detail Matakuliah Mahasiswa</router-link>
+              <router-link :to="{ name: 'MatkulMhs', params: { id: Mahasiswa.id } }" class="btn btn-info">Detail Matkuliah Mahasiswa</router-link>
             </td>
           </tr>
         </tbody>
       </table>
-      <router-link :to="{ name: 'Krs' }" class="btn btn-danger">Back</router-link>
     </div>
   </div>
 </template>
@@ -76,7 +75,7 @@
 import axios from 'redaxios';
 
 export default {
-  name: 'Semester',
+  name: 'DetKrs',
   data() {
     return {
       KrsId: this.$route.params.id,
@@ -139,10 +138,8 @@ export default {
     fetchStudentDetails() {
       // Assuming you have the array of mahasiswa_id values in this.MhsID
       var mahasiswaIds = this.MhsID;
-      var uniqueMahasiswaIds = [...new Set(mahasiswaIds)];
-
       // Iterate through each mahasiswa_id
-      uniqueMahasiswaIds.forEach((mahasiswaId) => {
+      mahasiswaIds.forEach((mahasiswaId) => {
         // Assuming you have an API endpoint to fetch mahasiswa details
         const mahasiswaUrl = `http://127.0.0.1:8000/api/mahasiswa/${mahasiswaId}`;
 
