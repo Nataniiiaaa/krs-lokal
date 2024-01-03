@@ -48,6 +48,7 @@
     <div class="d-flex justify-content-between my-3">
       <h5>Nama : {{ MhsDetail.nama }}</h5>
     </div>
+    <button class="btn btn-danger" @click="goBack">Kembali</button>
     <div class="table-responsive shadow p-3 mb-5 bg-white rounded">
       <table class="table table-bordered table-striped">
         <thead class="thead-dark">
@@ -97,6 +98,9 @@ export default {
     this.fetchMhsDetails();
   },
   methods: {
+    goBack() {
+      this.$router.go(-1);
+    },
     fetchMhsDetails() {
       const url = `http://127.0.0.1:8000/api/mahasiswa/${this.MahasiswaId}`;
       axios

@@ -48,6 +48,7 @@
     <div class="d-flex justify-content-between my-3">
       <h5>Semester : {{ krsDetails.semester }}</h5>
     </div>
+    <button class="btn btn-danger" @click="goBack">Kembali</button>
     <div class="table-responsive shadow p-3 mb-5 bg-white rounded">
       <table class="table table-bordered table-striped">
         <thead class="thead-dark">
@@ -71,6 +72,7 @@
   </div>
 </template>
 
+
 <script>
 import axios from 'redaxios';
 
@@ -83,10 +85,11 @@ export default {
         tahun: '',
         semester: '',
       },
-      students: [], // Initialize as an empty array
+      students: [],
       DetilKrsList: [],
       MhsID: [],
       mahasiswaDetails: [],
+      uniqueNIMs: {}, // Objek untuk menyimpan NIM yang sudah ada
     };
   },
 
@@ -94,6 +97,9 @@ export default {
     this.fetchKrsDetails();
   },
   methods: {
+    goBack() {
+      this.$router.go(-1);
+    },
     fetchKrsDetails() {
       const krsUrl = `http://127.0.0.1:8000/api/krs/${this.KrsId}`;
       axios
@@ -101,25 +107,22 @@ export default {
         .then(({ data }) => {
           this.krsDetails.tahun = data.tahun;
           this.krsDetails.semester = data.semester;
-          // Fetch DetilKrsList and Mahasiswa details
           this.fetchStudentForKrs();
         })
         .catch((error) => {
           console.error('Error fetching KRS details:', error);
         });
     },
-    // In the fetchStudentForKrs method
+
     fetchStudentForKrs() {
       const detilKrsUrl = `http://127.0.0.1:8000/api/detilkrs`;
       axios
         .get(detilKrsUrl)
         .then(({ data }) => {
-          console.log('DetilKrsList Created', data);
           this.DetilKrsList = data;
           var index = 0;
           this.DetilKrsList.forEach((element) => {
-            var e = element;
-            var matches = e.krs_id == this.KrsId;
+            var matches = element.krs_id == this.KrsId;
             if (matches) {
               this.MhsID[index] = element.mahasiswa_id;
               index++;
@@ -128,37 +131,49 @@ export default {
             }
           });
 
-          // Fetch additional details for each student (nim, nama, etc.)
           this.fetchStudentDetails();
         })
         .catch((error) => {
           console.error('Error fetching DetilKrsList:', error);
         });
     },
+
     fetchStudentDetails() {
-      // Assuming you have the array of mahasiswa_id values in this.MhsID
       var mahasiswaIds = this.MhsID;
-      // Iterate through each mahasiswa_id
-      mahasiswaIds.forEach((mahasiswaId) => {
-        // Assuming you have an API endpoint to fetch mahasiswa details
-        const mahasiswaUrl = `http://127.0.0.1:8000/api/mahasiswa/${mahasiswaId}`;
 
-        // Make an API request to get mahasiswa details
-        axios
-          .get(mahasiswaUrl)
-          .then((response) => {
-            const mahasiswaData = response.data;
+      // Menggunakan Promise.all untuk menunggu seluruh data mahasiswa diambil
+      Promise.all(
+        mahasiswaIds.map((mahasiswaId) => {
+          const mahasiswaUrl = `http://127.0.0.1:8000/api/mahasiswa/${mahasiswaId}`;
+          return axios
+            .get(mahasiswaUrl)
+            .then((response) => {
+              const mahasiswaData = response.data;
 
-            // Push an object with nim and nama to the mahasiswaDetails array
-            this.mahasiswaDetails.push({
-              id: mahasiswaId,
-              nim: mahasiswaData.nim,
-              nama: mahasiswaData.nama,
+              // Validasi NIM
+              if (!this.uniqueNIMs[mahasiswaData.nim]) {
+                this.uniqueNIMs[mahasiswaData.nim] = true;
+                return {
+                  id: mahasiswaId,
+                  nim: mahasiswaData.nim,
+                  nama: mahasiswaData.nama,
+                };
+              } else {
+                console.log(`Duplicate NIM found: ${mahasiswaData.nim}`);
+                return null;
+              }
+            })
+            .catch((error) => {
+              console.error('Error fetching Mahasiswa details:', error);
+              return null;
             });
-          })
-          .catch((error) => {
-            console.error('Error fetching Mahasiswa details:', error);
-          });
+        })
+      ).then((mahasiswaDetails) => {
+        // Menghilangkan nilai null dari Promise.all (untuk NIM duplikat)
+        this.mahasiswaDetails = mahasiswaDetails.filter((detail) => detail !== null);
+
+        // Sorting mahasiswaDetails berdasarkan NIM terkecil ke NIM terbesar
+        this.mahasiswaDetails.sort((a, b) => a.nim.localeCompare(b.nim));
       });
     },
   },
