@@ -83,6 +83,16 @@ const routes = [
     name: 'DetailMahasiswa',
     component: () => import('../components/DetailMahasiswa.vue'),
   },
+  {
+    path: '/detailsemester/:id',
+    name: 'DetKrs',
+    component: () => import('../components/Semester.vue'),
+  },
+  {
+    path: '/detailmatakuliah-mahasiswa/:id',
+    name: 'MatkulMhs',
+    component: () => import('../components/MatkulMhs.vue'),
+  },
 ];
 
 const router = createRouter({
