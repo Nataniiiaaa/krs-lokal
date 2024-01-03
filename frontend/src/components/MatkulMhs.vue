@@ -43,6 +43,12 @@
       <h2>Detail Matakuliah Mahasiswa</h2>
     </div>
     <div class="d-flex justify-content-between my-3">
+      <h5>Tahun : {{ krsDetails.tahun }}</h5>
+    </div>
+    <div class="d-flex justify-content-between my-3">
+      <h5>Semester : {{ krsDetails.semester }}</h5>
+    </div>
+    <div class="d-flex justify-content-between my-3">
       <h5>NIM : {{ MhsDetail.nim }}</h5>
     </div>
     <div class="d-flex justify-content-between my-3">
@@ -83,6 +89,10 @@ export default {
       MhsDetail: {
         nim: '',
         nama: '',
+      },
+      krsDetails: {
+        tahun: '',
+        semester: '',
       },
       DetilKrsList: [],
       MatkulID: [],
