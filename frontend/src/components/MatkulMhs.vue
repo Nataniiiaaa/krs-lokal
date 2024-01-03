@@ -43,6 +43,12 @@
       <h2>Detail Matakuliah Mahasiswa</h2>
     </div>
     <div class="d-flex justify-content-between my-3">
+      <h5>Tahun : {{ krsDetails.tahun }}</h5>
+    </div>
+    <div class="d-flex justify-content-between my-3">
+      <h5>Semester : {{ krsDetails.semester }}</h5>
+    </div>
+    <div class="d-flex justify-content-between my-3">
       <h5>NIM : {{ MhsDetail.nim }}</h5>
     </div>
     <div class="d-flex justify-content-between my-3">
@@ -80,11 +86,14 @@ export default {
   data() {
     return {
       MahasiswaId: this.$route.params.id,
+      KrsId: this.$route.params.id,
       MhsDetail: {
         nim: '',
         nama: '',
+      },
+      krsDetails: {
+        tahun: '',
         semester: '',
-        tahunAjaran: '',
       },
       DetilKrsList: [],
       MatkulID: [],
@@ -96,10 +105,24 @@ export default {
 
   created() {
     this.fetchMhsDetails();
+    this.fetchKrsDetails();
   },
   methods: {
     goBack() {
       this.$router.go(-1);
+    },
+    fetchKrsDetails() {
+      const krsUrl = `http://127.0.0.1:8000/api/krs/${this.$route.params.id}`;
+      axios
+        .get(krsUrl)
+        .then(({ data }) => {
+          this.krsDetails.tahun = data.tahun;
+          this.krsDetails.semester = data.semester;
+          this.fetchStudentForKrs();
+        })
+        .catch((error) => {
+          console.error('Error fetching KRS details:', error);
+        });
     },
     fetchMhsDetails() {
       const url = `http://127.0.0.1:8000/api/mahasiswa/${this.MahasiswaId}`;
@@ -108,8 +131,6 @@ export default {
         .then(({ data }) => {
           this.MhsDetail.nim = data.nim;
           this.MhsDetail.nama = data.nama;
-          this.MhsDetail.semester = data.semester;
-          this.MhsDetail.tahunAjaran = data.tahun_ajaran;
 
           this.fetchMatakuliahForStudent();
         })
