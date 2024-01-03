@@ -20,7 +20,7 @@
                 <router-link class="nav-link" to="/datamahasiswa">Data Mahasiswa</router-link>
               </li>
               <li class="nav-item">
-                <router-link class="nav-link" to="/matakuliah">Data Matakuliah</router-link>
+                <a class="nav-link" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"> Data Matakuliah </a>
               </li>
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"> Data KRS </a>
@@ -54,7 +54,6 @@
     <div class="d-flex justify-content-between my-3">
       <h5>Nama : {{ MhsDetail.nama }}</h5>
     </div>
-
     <div class="table-responsive shadow p-3 mb-5 bg-white rounded">
       <table class="table table-bordered table-striped">
         <thead class="thead-dark">
@@ -74,6 +73,7 @@
           </tr>
         </tbody>
       </table>
+      <router-link :to="{ name: 'Semester', params: { id: KrsId } }" class="btn btn-danger">Back</router-link>
     </div>
   </div>
 </template>
@@ -86,6 +86,7 @@ export default {
   data() {
     return {
       MahasiswaId: this.$route.params.id,
+      KrsId: this.$route.params.krsid,
       MhsDetail: {
         nim: '',
         nama: '',
@@ -99,30 +100,43 @@ export default {
       DetilID: [],
       MatakuliahDetails: [],
       Nilai: [],
+      KRS: [],
     };
   },
 
   created() {
     this.fetchMhsDetails();
+    this.fetchKrsDetails();
   },
   methods: {
+    fetchKrsDetails() {
+      const krsUrl = `http://127.0.0.1:8000/api/krs/${this.KrsId}`;
+      axios
+        .get(krsUrl)
+        .then(({ data }) => {
+          this.krsDetails.tahun = data.tahun;
+          this.krsDetails.semester = data.semester;
+          // Fetch DetilKrsList and Mahasiswa details
+        })
+        .catch((error) => {
+          console.error('Error fetching KRS details:', error);
+        });
+    },
     fetchMhsDetails() {
       const url = `http://127.0.0.1:8000/api/mahasiswa/${this.MahasiswaId}`;
       axios
         .get(url)
         .then(({ data }) => {
-          console.log('Data Mahasiswa:', data);
           this.MhsDetail.nim = data.nim;
           this.MhsDetail.nama = data.nama;
-          // tambahkan ID mahasiswa ke objek MhsDetail
-          this.MhsDetail.id = data.id;
+
           this.fetchMatakuliahForStudent();
         })
         .catch((error) => {
           console.error('Error fetching Mhs details:', error);
         });
     },
-
+    // In the fetchMatakuliahForStudent method
     fetchMatakuliahForStudent() {
       const detilKrsUrl = `http://127.0.0.1:8000/api/detilkrs`;
       axios
@@ -134,7 +148,7 @@ export default {
           this.DetilKrsList.forEach((element) => {
             var e = element;
             console.log(e);
-            var matches = e.mahasiswa_id == this.MhsDetail.id;
+            var matches = e.mahasiswa_id == this.MahasiswaId;
             if (matches) {
               this.MatkulID[index] = element.matakuliah_id;
               this.DetilID[index] = element.id;
@@ -152,7 +166,6 @@ export default {
           console.error('Error fetching DetilKrsList:', error);
         });
     },
-
     fetchMatakuliahDetails() {
       var matkulIds = this.MatkulID;
       var detilIds = this.DetilID;
@@ -178,9 +191,7 @@ export default {
             });
         })
       ).then((matakuliahDetailsArray) => {
-        console.log('Matakuliah Details Array:', matakuliahDetailsArray);
-
-        // Iterasi dan pemrosesan berikutnya
+        // Iterate through detilIds and match them with matakuliahDetailsArray
         detilIds.forEach((detilId, index) => {
           const detilkrsUrl = `http://127.0.0.1:8000/api/detilkrs/${detilId}`;
           axios
