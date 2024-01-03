@@ -61,7 +61,7 @@
               <td>{{ Matakuliah.semester }}</td>
               <td>
                 <div class="btn-group">
-                  <router-link :to="{ name: 'EditMataKuliah', params: { id: 1 } }" class="btn btn-warning">Edit</router-link>
+                  <router-link :to="{ name: 'EditMataKuliah', params: { id: Matakuliah.id } }" class="btn btn-warning">Edit</router-link>
                   <router-link :to="{ name: 'DetailMatakuliah', params: { id: Matakuliah.id } }" class="btn btn-info">Detail</router-link>
                   <button type="button" class="btn btn-danger" @click="removeMatakuliah(Matakuliah)">Delete</button>
                 </div>

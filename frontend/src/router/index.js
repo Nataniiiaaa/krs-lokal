@@ -56,7 +56,7 @@ const routes = [
   {
     path: '/editmatakuliah/:id',
     name: 'EditMataKuliah',
-    component: () => import('../components/EditMataKuliah.vue'),
+    component: () => import('../components/EditMatakuliah.vue'),
   },
   {
     path: '/tambahmahasiswa',
