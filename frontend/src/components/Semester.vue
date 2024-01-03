@@ -75,7 +75,7 @@
   import axios from 'redaxios';
   
   export default {
-    name: 'Semester',
+    name: 'DetKrs',
     data() {
       return {
         KrsId: this.$route.params.id,

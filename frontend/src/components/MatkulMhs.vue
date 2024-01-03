@@ -75,7 +75,7 @@
   import axios from 'redaxios';
   
   export default {
-    name: 'Semester',
+    name: 'MatkulMhs',
     data() {
       return {
         MahasiswaId: this.$route.params.id,
