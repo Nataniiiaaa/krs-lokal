@@ -1,6 +1,6 @@
 <template>
   <div>
-    <nav class="navbar navbar-dark bg-dark">
+    <nav class="navbar navbar-dark bg-dark fixed-top">
       <div class="container-fluid">
         <a class="navbar-brand" href="#">KRS ADMIN</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasDarkNavbar" aria-controls="offcanvasDarkNavbar" aria-label="Toggle navigation">
@@ -37,7 +37,7 @@
         </div>
       </div>
     </nav>
-    <div class="container">
+    <div class="container" style="padding-top: 70px; height: 100vh; overflow-y: auto;">
       <div class="d-flex justify-content-between my-3">
         <h2>DATA MATAKULIAH</h2>
         <router-link class="btn btn-primary" to="/tambahmatakuliah">Tambah Data</router-link>
