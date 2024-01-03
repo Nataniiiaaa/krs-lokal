@@ -48,6 +48,7 @@
       <div class="d-flex justify-content-between my-3">
         <h5>Nama : {{ MhsDetail.nama }}</h5>
       </div>
+      <router-link class="btn btn-danger" to="/krs">Kembali</router-link>
       <div class="table-responsive shadow p-3 mb-5 bg-white rounded">
         <table class="table table-bordered table-striped">
           <thead class="thead-dark">
