@@ -80,12 +80,12 @@
     name: 'KRS',
     data() {
       return {
-        allKRS: {},
+        allKRS: [],
         KRS: {
-          'id': '',
-          'tahun': '',
-          'semester': '',
-        }
+          id: '',
+          tahun: '',
+          semester: '',
+        },
       };
     },
     created() {
@@ -101,23 +101,46 @@
         axios.get(url).then(({ data }) => {
           console.log(data);
           this.allKRS = data;
+          this.sortByYearAndSemester();
         });
       },
+      sortByYearAndSemester() {
+  const ganjilFirst = (a, b) => {
+    if (a.semester % 2 === 0 && b.semester % 2 !== 0) {
+      return 1; // Jika b ganjil dan a genap, a di atas
+    }
+    if (a.semester % 2 !== 0 && b.semester % 2 === 0) {
+      return -1; // Jika a ganjil dan b genap, b di atas
+    }
+    return 0; // Jika keduanya ganjil atau keduanya genap, biarkan urutan seperti itu
+  };
+
+  this.allKRS.sort((a, b) => {
+    if (a.tahun !== b.tahun) {
+      return a.tahun - b.tahun; // Urutkan tahun terlebih dahulu
+    } else {
+      return ganjilFirst(a, b); // Gunakan fungsi penentu urutan ganjil/genap
+    }
+  });
+},
       removeKrs(KRS) {
         var url = `http://127.0.0.1:8000/api/krs/${KRS.id}`;
-        axios.delete(url).then(() => {
-          console.log('Data Berhasil Dihapus !');
-          this.loadAllKrs(); // Memanggil kembali data setelah menghapus
-        }).catch((error) => {
-          console.error('Error deleting data:', error);
-        });
+        axios
+          .delete(url)
+          .then(() => {
+            console.log('Data Berhasil Dihapus !');
+            this.loadAllKrs();
+          })
+          .catch((error) => {
+            console.error('Error deleting data:', error);
+          });
       },
       logoutUser() {
-          localStorage.removeItem('user'); 
-           window.alert('Anda telah logout'); 
-          this.$router.push('/login'); 
-          },
-    }
-  }
+        localStorage.removeItem('user');
+        window.alert('Anda telah logout');
+        this.$router.push('/login');
+      },
+    },
+  };
   </script>
   
