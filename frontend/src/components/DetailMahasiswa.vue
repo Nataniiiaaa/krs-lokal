@@ -22,8 +22,13 @@
               <li class="nav-item">
                 <router-link class="nav-link" to="/matakuliah">Data Matakuliah</router-link>
               </li>
-              <li><router-link class="nav-link" to="/krs">KRS</router-link></li>
-                  <li><router-link class="nav-link" to="/detilkrs">Detil KRS</router-link></li>
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"> Data KRS </a>
+                <ul class="dropdown-menu dropdown-menu-dark">
+                  <li><router-link class="dropdown-item" to="/krs">KRS</router-link></li>
+                  <li><router-link class="dropdown-item" to="/detilkrs">Detail KRS</router-link></li>
+                </ul>
+              </li>
               <li class="d-flex justify-content-between my-3" style="text-align: left">
                 <button type="button" class="btn btn-outline-danger" style="background-color: red; color: white" @click="logoutUser">Logout</button>
               </li>
@@ -57,57 +62,41 @@
             <th>Agama</th>
             <td>{{ getAgamaName(Mahasiswa.agama_id) }}</td>
           </tr>
+          <tr>
+            <th>Jumlah SKS</th>
+            <td>{{ this.SKS }}</td>
+          </tr>
+          <tr>
+            <th>IP Kumulatif</th>
+            <td>{{ hitungIPK() }}</td>
+          </tr>
         </table>
       </div>
-
-      <div>
-        <h2 class="text-center text mb-3">Matakuliah yang di tempu</h2>
-        <div v-for="(i, index) in getSemester()" :key="index">
-          <div>
-            <h5 class="text mb-2">Semester {{ i }}</h5>
-          </div>
-
-          <table class="table table-striped table-bordered">
-            <thead>
+      <div class="container rounded">
+        <div class="mb-4">
+          <h2 class="text-center text mb-4">Kartu Hasil Studi Mahasiswa</h2>
+          <table class="table table-bordered table-striped">
+            <thead class="thead-dark">
               <tr>
-                <th>Kode Matakuliah</th>
-                <th>Nama Matakuliah</th>
-                <th>SKS</th>
-                <th>Nilai</th>
-                <th>Predikat</th>
-                <th>Bobot Nilai</th>
+                <th scope="col">#</th>
+                <th scope="col">Tahun</th>
+                <th scope="col">Semester</th>
+                <th scope="col">Action</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(matakuliah, index) in getMatakuliah(MahasiswaId)" :key="index">
-                <template v-if="matakuliah.semester == i">
-                  <td>{{ matakuliah.kode }}</td>
-                  <td>{{ matakuliah.namamatakuliah }}</td>
-                  <td>{{ matakuliah.sks }}</td>
-                  <td>{{ getNilai(MahasiswaId, matakuliah.id) }}</td>
-                  <td>{{ getPredikat(getNilai(MahasiswaId, matakuliah.id)) }}</td>
-                  <td>{{ getBobotNilai(MahasiswaId, matakuliah.id) }}</td>
-                </template>
-              </tr>
-              <tr>
-                <td colspan="2" style="text-align: center">Total</td>
-                <td>{{ totalSks }}</td>
-                <td></td>
-                <td></td>
-                <td>{{ totalBobotNilai }}</td>
+              <tr v-for="(krs, index) in KrsData" :key="krs.id">
+                <td scope="col">{{ index + 1 }}</td>
+                <td scope="col">{{ krs.tahun }}</td>
+                <td scope="col">{{ krs.semester }}</td>
+                <div class="btn-group">
+                  <router-link :to="{ name: 'ShowKhs', params: { id: krs.id,  mhsid: MahasiswaId} }" class="btn btn-info">Show Mahasiswa KHS</router-link>
+                </div>
               </tr>
             </tbody>
           </table>
-          <div>
-            <p class="text mb-2">IPS: {{ IPS(i) }}</p>
-          </div>
         </div>
       </div>
-
-      <div>
-        <h4 class="text mb-3">IPK: {{ getIPK() }}</h4>
-      </div>
-
       <div class="mt-4">
         <router-link to="/datamahasiswa" class="btn btn-danger">Kembali</router-link>
       </div>
@@ -124,7 +113,6 @@ export default {
     return {
       MahasiswaId: this.$route.params.id,
       agamaList: [],
-      matakuliahList: [],
       Mahasiswa: {
         id: '',
         nim: '',
@@ -133,28 +121,36 @@ export default {
         lahir: '',
         agama_id: '',
       },
+      MatkulData: [],
       DetilKrs: [],
-      Matkul: [],
-      totalSks: 0,
-      totalBobotNilai: 0,
+      KrsList: [],
+      KrsData: [],
+      MatkulID: [],
+      NilaiMatkul: [],
+      SKS: 0,
+      MatkulSKS: [],
+      TotalNilai: 0,
+      IPK: 0,
     };
   },
   created() {
     this.fetchMahasiswaData();
     this.loadAgamaList();
     this.loadDetilKrs();
-    this.loadMatakuliahList();
+
   },
   mounted() {
-    // Pemanggilan fungsi setelah data matakuliah diisi
-    this.Matkul = this.getMatakuliah(this.MahasiswaId);
-    this.hitungTotalSks();
-    this.hitungTotalBobotNilai();
+
   },
   computed: {
     isMahasiswaHasMatakuliah() {
       return this.getMatakuliah(this.MahasiswaId).length > 0;
     },
+    // totalSKS() {
+    //   let sks = this.MatkulData.reduce((sum, matkul) => sum + parseFloat(matkul.sks), 0)
+    //   return sks
+    // },
+
   },
   methods: {
     fetchMahasiswaData() {
@@ -175,116 +171,79 @@ export default {
       var detilKrsUrl = 'http://127.0.0.1:8000/api/detilkrs';
       axios.get(detilKrsUrl).then(({ data }) => {
         console.log(data);
-        this.DetilKrs = data;
+        this.DetilKrs = data
+        this.fetchKrsFromDetilKrs()
+
       });
     },
-    loadMatakuliahList() {
-      var matakuliahUrl = 'http://127.0.0.1:8000/api/matakuliah';
-      axios.get(matakuliahUrl).then(({ data }) => {
-        console.log(data);
-        this.matakuliahList = data;
+    fetchKrsFromDetilKrs() {
+      const uniqueKrsSet = new Set(); // Use a Set to track unique values
+      const uniqueMatakuliahSet = new Set()
+      this.DetilKrs.forEach((detil) => {
+        if (detil.mahasiswa_id == this.MahasiswaId) {
+          uniqueKrsSet.add(detil.krs_id) // Add value to the Set
+          uniqueMatakuliahSet.add(detil.matakuliah_id)
+          this.NilaiMatkul.push(detil.nilai)
+        }
       });
+      this.KrsList = Array.from(uniqueKrsSet); // Convert the Set back to an array
+      this.MatkulID = Array.from(uniqueMatakuliahSet)
+      this.loadKrsList();
+      this.loadMatakuliahList()
+    },
+    loadKrsList(){
+      this.KrsList.forEach(krsid => {
+        var krsUrl = `http://127.0.0.1:8000/api/krs/${krsid}`
+        axios.get(krsUrl).then(({ data }) => {
+          this.KrsData.push(data)
+        })
+      })
+    },
+    loadMatakuliahList(){
+      var url = `http://127.0.0.1:8000/api/matakuliah`
+      axios.get(url).then(({ data }) => {
+        this.MatkulData = data
+        let index = 0
+        this.MatkulData.forEach(item => {
+          this.MatkulID.forEach(matkul => {
+            if(item.id == matkul){
+              this.MatkulSKS.push(item.sks)
+              this.SKS += parseFloat(item.sks)
+            }
+          })
+        });
+      })
     },
     getAgamaName(agamaId) {
       const agama = this.agamaList.find((agama) => agama.id === agamaId);
       return agama ? agama.agama : 'Unknown';
     },
-    getMatakuliah(mahasiswaId) {
-      const matakuliahDetils = this.DetilKrs.filter((detil) => detil.mahasiswa_id == mahasiswaId);
-      return matakuliahDetils.map((detil) => {
-        const matakuliah = this.matakuliahList.find((matakuliah) => matakuliah.id == detil.matakuliah_id);
-        return matakuliah || {};
-      });
-    },
-    getNilai(mahasiswaId, matakuliahId) {
-      const detil = this.DetilKrs.find((detil) => detil.mahasiswa_id == mahasiswaId && detil.matakuliah_id == matakuliahId);
-      return detil ? detil.nilai : 'Unknown';
-    },
-    getPredikat(nilai) {
-      if (nilai > 0 && nilai < 45) return 'E';
-      else if (nilai >= 45 && nilai < 50) return 'D';
-      else if (nilai >= 50 && nilai < 55) return 'D+';
-      else if (nilai >= 55 && nilai < 60) return 'C';
-      else if (nilai >= 60 && nilai < 65) return 'C+';
-      else if (nilai >= 65 && nilai < 75) return 'B';
-      else if (nilai >= 75 && nilai < 80) return 'B+';
-      else if (nilai >= 80 && nilai <= 100) return 'A';
-    },
-    getSemester() {
-      return 4;
-    },
-    getAngka(nilai) {
-      const nilaiMapping = {
-        E: 0,
-        D: 1,
-        'D+': 1.5,
-        C: 2,
-        'C+': 2.5,
-        B: 3,
-        'B+': 3.5,
-        A: 4,
-      };
-      return nilaiMapping[nilai];
-    },
-    IPS(semester) {
-      this.Matkul = this.getMatakuliah(this.MahasiswaId);
-      let totalAngka = 0;
-      let totalSKS = 0;
-
-      this.Matkul.forEach((e) => {
-        let angka = this.getAngka(this.getPredikat(this.getNilai(this.MahasiswaId, e.id)));
-        totalAngka += e.sks * angka;
-        totalSKS += e.sks;
-      });
-
-      const IPS = totalSKS !== 0 ? totalAngka / totalSKS : 0;
-      return IPS.toFixed(2);
+    getAngka(nilai){
+      if(nilai > 0 && nilai < 45) return 0
+      else if(nilai >= 45 && nilai < 50) return 1
+      else if(nilai >= 50 && nilai < 55) return 1.5
+      else if(nilai >= 55 && nilai < 60) return 2
+      else if(nilai >= 60 && nilai < 65) return 2.5
+      else if(nilai >= 65 && nilai < 75) return 3
+      else if(nilai >= 75 && nilai < 80) return 3.5
+      else if(nilai >= 80 && nilai <= 100) return 4
     },
 
-    getIPK() {
-      let totalAngka = 0;
-      let totalSKS = 0;
+    hitungIPK() {
+      if (this.SKS > 0) {
+        let sum = 0
+        for (let index = 0; index < this.NilaiMatkul.length; index++) {
+          sum += this.getAngka(this.NilaiMatkul[index]) * this.MatkulSKS[index]
+        }
 
-      this.Matkul.forEach((e) => {
-        let angka = this.getAngka(this.getPredikat(this.getNilai(this.MahasiswaId, e.id)));
-        totalAngka += e.sks * angka;
-        totalSKS += e.sks;
-      });
-
-      const IPK = totalSKS !== 0 ? totalAngka / totalSKS : 0;
-      return IPK.toFixed(2);
-    },
-
-    getBobotNilai(mahasiswaId, matakuliahId) {
-      const angka = this.getAngka(this.getPredikat(this.getNilai(mahasiswaId, matakuliahId)));
-      const sks = this.getMatakuliah(mahasiswaId).find((matakuliah) => matakuliah.id == matakuliahId).sks;
-      const bobotNilai = (angka * sks).toFixed(2);
-      return bobotNilai;
+        let ipk = sum / this.SKS;
+        ipk = ipk.toFixed(2);
+        return ipk;
+      } else {
+        return 'Load';
+      }
     },
 
-    hitungTotalSks() {
-      let totalSks = 0;
-      this.Matkul.forEach((matakuliah) => {
-        totalSks += matakuliah.sks;
-      });
-      this.totalSks = totalSks;
-    },
-
-    hitungTotalBobotNilai() {
-      let totalBobotNilai = 0;
-      this.Matkul.forEach((matakuliah) => {
-        const angka = this.getAngka(this.getPredikat(this.getNilai(this.MahasiswaId, matakuliah.id)));
-        totalBobotNilai += angka * matakuliah.sks;
-      });
-      this.totalBobotNilai = totalBobotNilai.toFixed(2);
-    },
-    totalSks() {
-      return this.totalSks;
-    },
-    // Method untuk mendapatkan total Bobot Nilai
-    totalBobotNilai() {
-      return this.totalBobotNilai;
-    },
     logoutUser() {
       localStorage.removeItem('user');
       window.alert('Anda telah logout');

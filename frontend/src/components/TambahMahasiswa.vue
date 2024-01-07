@@ -88,7 +88,7 @@ export default {
     },
     async isNIMExist(nim) {
       try {
-        const response = await axios.get('http://127.0.0.1:8000/api/mahasiswa');
+        const response = await axios.get('https://api-group7-prognet.manpits.xyz/api/mahasiswa');
         const existingNIMs = response.data.map((mahasiswa) => mahasiswa.nim);
         return existingNIMs.includes(nim);
       } catch (error) {

@@ -59,9 +59,10 @@
                           <td>{{ KRS.semester }}</td>
                           <td>
                               <div class="btn-group">
+                                  <router-link :to="{name: 'DetKrs', params:{id: KRS.id}}" class="btn btn-primary">Detail Semester</router-link>
+                                  <router-link :to="{name: 'AddDetilKrs', params:{id: KRS.id}}" class="btn btn-info">Add Detil KRS</router-link>
                                   <router-link :to="{name: 'EditKrs', params:{id: KRS.id}}" class="btn btn-warning">Edit</router-link>
                                   <!-- <button type="button" class="btn btn-warning" @click="editMahasiswa(Mahasiswa)">Edit</button> -->
-                                  <router-link :to="{name: 'DetKrs', params:{id: KRS.id}}" class="btn btn-primary">Detail Semester</router-link>
                                   <button type="button" class="btn btn-danger" @click="removeKrs(KRS)">Delete</button>
                               </div>
                           </td>
@@ -80,12 +81,12 @@
     name: 'KRS',
     data() {
       return {
-        allKRS: [],
+        allKRS: {},
         KRS: {
-          id: '',
-          tahun: '',
-          semester: '',
-        },
+          'id': '',
+          'tahun': '',
+          'semester': '',
+        }
       };
     },
     created() {
@@ -97,50 +98,42 @@
     },
     methods: {
       loadAllKrs() {
-        var url = 'http://127.0.0.1:8000/api/krs';
-        axios.get(url).then(({ data }) => {
-          console.log(data);
-          this.allKRS = data;
-          this.sortByYearAndSemester();
-        });
-      },
-      sortByYearAndSemester() {
-  const ganjilFirst = (a, b) => {
-    if (a.semester % 2 === 0 && b.semester % 2 !== 0) {
-      return 1; // Jika b ganjil dan a genap, a di atas
-    }
-    if (a.semester % 2 !== 0 && b.semester % 2 === 0) {
-      return -1; // Jika a ganjil dan b genap, b di atas
-    }
-    return 0; // Jika keduanya ganjil atau keduanya genap, biarkan urutan seperti itu
-  };
+    var url = 'http://127.0.0.1:8000/api/krs';
+    axios.get(url).then(({ data }) => {
+      // Sort by year (ascending)
+      data.sort((a, b) => a.tahun - b.tahun);
 
-  this.allKRS.sort((a, b) => {
-    if (a.tahun !== b.tahun) {
-      return a.tahun - b.tahun; // Urutkan tahun terlebih dahulu
-    } else {
-      return ganjilFirst(a, b); // Gunakan fungsi penentu urutan ganjil/genap
-    }
-  });
-},
+      // Sort by semester (odd first, then even)
+      data.sort((a, b) => {
+        const isOddA = a.semester % 2 !== 0;
+        const isOddB = b.semester % 2 !== 0;
+
+        if (isOddA && !isOddB) {
+          return -1;
+        } else if (!isOddA && isOddB) {
+          return 1;
+        } else {
+          return 0;
+        }
+      });
+
+      this.allKRS = data;
+    });
+  },
       removeKrs(KRS) {
         var url = `http://127.0.0.1:8000/api/krs/${KRS.id}`;
-        axios
-          .delete(url)
-          .then(() => {
-            console.log('Data Berhasil Dihapus !');
-            this.loadAllKrs();
-          })
-          .catch((error) => {
-            console.error('Error deleting data:', error);
-          });
+        axios.delete(url).then(() => {
+          console.log('Data Berhasil Dihapus !');
+          this.loadAllKrs(); // Memanggil kembali data setelah menghapus
+        }).catch((error) => {
+          console.error('Error deleting data:', error);
+        });
       },
       logoutUser() {
-        localStorage.removeItem('user');
-        window.alert('Anda telah logout');
-        this.$router.push('/login');
-      },
-    },
-  };
-  </script>
-  
+          localStorage.removeItem('user'); 
+           window.alert('Anda telah logout'); 
+          this.$router.push('/login'); 
+          },
+    }
+  }
+  </script>  
