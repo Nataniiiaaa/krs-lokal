@@ -63,6 +63,7 @@
             <th scope="col">Nama Matakuliah</th>
             <th scope="col">Nilai</th>
             <th scope="col">Predikat</th>
+            <th scope="col">Action</th>
           </tr>
         </thead>
         <tbody>
@@ -71,6 +72,7 @@
             <td>{{ matkul.namamatakuliah }}</td>
             <td>{{ this.NilaiMatkul[index] }}</td>
             <td>{{ getPredikat(this.NilaiMatkul[index]) }}</td>
+            <button class="btn btn-warning" @click="editNilai(matkul, index)">Edit Nilai</button>
           </tr>
         </tbody>
       </table>
@@ -178,6 +180,34 @@ export default {
       // Implement your logout logic here
       console.log('Logout clicked');
     },
+    editNilai(matkul, index) {
+      // Assuming you have an input field or modal to get the new value for the grade
+      const newNilai = prompt('Enter the new grade:', this.NilaiMatkul[index]);
+
+      // Check if the user entered a valid number
+      if (newNilai !== null && !isNaN(newNilai)) {
+        // Update the NilaiMatkul array with the new value
+        this.NilaiMatkul[index] = parseFloat(newNilai);
+        
+        // Perform any additional logic you need, such as updating the database
+        const detilKrsId = this.DetilID[index];
+        const updateUrl = `http://127.0.0.1:8000/api/detilkrs/${detilKrsId}`;
+        axios
+          .put(updateUrl, { nilai: this.NilaiMatkul[index] })
+          .then(() => {
+            console.log('Grade updated successfully.');
+          })
+          .catch((error) => {
+            console.error('Error updating grade:', error);
+          });
+
+        // Log the updated NilaiMatkul array (you can remove this line in production)
+        console.log('Updated NilaiMatkul:', this.NilaiMatkul);
+      } else {
+        // Handle the case where the user entered an invalid value or canceled the prompt
+        alert('Invalid input. Please enter a valid number.');
+      }
+    }
   },
 };
 </script>
